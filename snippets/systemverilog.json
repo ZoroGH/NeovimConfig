@@ -1,0 +1,89 @@
+{
+  "begin end": {
+    "prefix": "be",
+    "body": [
+      "begin",
+      "    $0",
+      "end"
+    ],
+    "description": "begin/end block"
+  },
+
+  "if begin end": {
+    "prefix": "if",
+    "body": [
+      "if (${1:condition}) begin",
+      "    $0",
+      "end"
+    ],
+    "description": "if begin/end"
+  },
+
+  "if else begin end": {
+    "prefix": "ife",
+    "body": [
+      "if (${1:condition}) begin",
+      "    ${2:// statements}",
+      "end else begin",
+      "    $0",
+      "end"
+    ],
+    "description": "if else begin/end"
+  },
+
+  "always_ff reset": {
+    "prefix": "aff",
+    "body": [
+      "always_ff @(posedge ${1:clk} or negedge ${2:rst_n}) begin",
+      "    if (!$2) begin",
+      "        ${3:q} <= '0;",
+      "    end else begin",
+      "        $3 <= ${4:d};",
+      "    end",
+      "end"
+    ],
+    "description": "always_ff with async active-low reset"
+  },
+
+  "always_comb": {
+    "prefix": "comb",
+    "body": [
+      "always_comb begin",
+      "    $0",
+      "end"
+    ],
+    "description": "always_comb block"
+  },
+
+  "case": {
+    "prefix": "case",
+    "body": [
+      "case (${1:expr})",
+      "    ${2:default}: begin",
+      "        $0",
+      "    end",
+      "    default: begin",
+      "    end",
+      "endcase"
+    ],
+    "description": "case statement"
+  },
+
+  "module": {
+    "prefix": "mod",
+    "body": [
+      "module ${1:module_name} #(",
+      "    parameter int ${2:WIDTH} = ${3:8}",
+      ")(",
+      "    input  logic              ${4:clk},",
+      "    input  logic              ${5:rst_n},",
+      "    output logic [${2}-1:0]   ${6:data_o}",
+      ");",
+      "",
+      "    $0",
+      "",
+      "endmodule"
+    ],
+    "description": "SystemVerilog module template"
+  }
+}
