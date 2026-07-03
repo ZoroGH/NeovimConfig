@@ -19,9 +19,7 @@ vim.opt.sidescrolloff = 8
 local opt = vim.opt
 
 opt.list = true
-opt.listchars = {}
 opt.wrap = true
-opt.relativenumber = false
 
 -- ===================================================================
 --  Tab 和缩进设置 (解决您的问题)
