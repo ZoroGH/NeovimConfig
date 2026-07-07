@@ -10,30 +10,52 @@
 --
 
 local function set_cursor_highlights()
-  vim.api.nvim_set_hl(0, "cursor", {
-    fg = "#000000",
-    bg = "#ffcc00",
-    bold = true,
-  })
+    vim.api.nvim_set_hl(0, "cursor", {
+        fg = "#000000",
+        bg = "#ffcc00",
+        bold = true,
+    })
 
-  vim.api.nvim_set_hl(0, "cursorinsert", {
-    fg = "#000000",
-    bg = "#00d7ff",
-    bold = true,
-  })
+    vim.api.nvim_set_hl(0, "cursorinsert", {
+        fg = "#000000",
+        bg = "#00d7ff",
+        bold = true,
+    })
 
-  vim.api.nvim_set_hl(0, "cursorline", {
-    bg = "#3a3f4b",
-  })
+    vim.api.nvim_set_hl(0, "cursorline", {
+        bg = "#3a3f4b",
+    })
 
-  vim.api.nvim_set_hl(0, "cursorlinenr", {
-    fg = "#ff79c6",
-    bold = true,
-  })
+    vim.api.nvim_set_hl(0, "cursorlinenr", {
+        fg = "#ff79c6",
+        bold = true,
+    })
 end
 
 set_cursor_highlights()
 
 vim.api.nvim_create_autocmd({ "ColorScheme", "VimEnter" }, {
-  callback = set_cursor_highlights,
+    callback = set_cursor_highlights,
+})
+
+local function keep_view(fn)
+    local view = vim.fn.winsaveview()
+    local search = vim.fn.getreg("/")
+    fn()
+    vim.fn.setreg("/", search)
+    vim.fn.winrestview(view)
+end
+
+vim.api.nvim_create_user_command("StripSvComments", function(opts)
+    keep_view(function()
+        vim.cmd([[silent! keeppatterns %s#/\*\_.\{-}\*/##ge]])
+        vim.cmd([[silent! keeppatterns %s#//.*$##ge]])
+
+        if opts.bang then
+            vim.cmd([[silent! keeppatterns g#^\s*$#d]])
+        end
+    end)
+end, {
+    bang = true,
+    desc = "Remove Verilog/SystemVerilog comments. Use ! to also remove empty lines",
 })
