@@ -38,3 +38,12 @@ opt.listchars = {
     nbsp = "×", -- 显示不间断空格
     space = "·",
 }
+
+-- SystemVerilog 文件使用 Verilog Tree-sitter parser
+vim.treesitter.language.register("verilog", { "systemverilog" })
+vim.opt.foldmethod = "expr"
+vim.opt.foldexpr = "v:lua.vim.treesitter.foldexpr()"
+vim.opt.foldenable = true
+-- 默认展开所有折叠
+vim.opt.foldlevel = 99
+vim.opt.foldlevelstart = 99
