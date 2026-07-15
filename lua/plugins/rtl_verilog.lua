@@ -163,6 +163,29 @@ return {
                 command = "verible-verilog-format",
                 args = {
                     "--indentation_spaces=4",
+                    "--column_limit=160",
+
+                    -- 每层四个空格
+                    "--indentation_spaces=4",
+                    "--wrap_spaces=4",
+
+                    -- 所有列表都按固定层级缩进
+                    "--port_declarations_indentation=indent",
+                    "--formal_parameters_indentation=indent",
+                    "--named_port_indentation=indent",
+                    "--named_parameter_indentation=indent",
+
+                    -- 不插入大量表格空格
+                    "--port_declarations_alignment=flush-left",
+                    "--formal_parameters_alignment=flush-left",
+                    "--named_port_alignment=flush-left",
+                    "--named_parameter_alignment=flush-left",
+                    "--module_net_variable_alignment=flush-left",
+                    "--assignment_statement_alignment=flush-left",
+                    "--case_items_alignment=flush-left",
+
+                    "--alignment_group_boundary=blank-lines-and-separator-comments",
+
                     "-",
                 },
                 stdin = true,
