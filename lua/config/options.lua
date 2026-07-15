@@ -40,7 +40,11 @@ opt.listchars = {
 }
 
 -- SystemVerilog 文件使用 Verilog Tree-sitter parser
-vim.treesitter.language.register("verilog", { "systemverilog" })
+vim.treesitter.language.register("systemverilog", {
+    "verilog",
+    "systemverilog",
+})
+
 vim.opt.foldmethod = "expr"
 vim.opt.foldexpr = "v:lua.vim.treesitter.foldexpr()"
 vim.opt.foldenable = true
