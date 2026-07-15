@@ -38,8 +38,11 @@ opt.listchars = {
     nbsp = "×", -- 显示不间断空格
     space = "·",
 }
+local ts_runtime = vim.fn.stdpath("data") .. "/lazy/nvim-treesitter/runtime"
 
--- SystemVerilog 文件使用 Verilog Tree-sitter parser
+if vim.fn.isdirectory(ts_runtime) == 1 then
+    vim.opt.runtimepath:prepend(ts_runtime)
+end
 vim.treesitter.language.register("systemverilog", {
     "verilog",
     "systemverilog",
