@@ -59,3 +59,35 @@ end, {
     bang = true,
     desc = "Remove Verilog/SystemVerilog comments. Use ! to also remove empty lines",
 })
+
+-- 鼠标/光标停止多久后触发 CursorHold
+vim.opt.updatetime = 500
+
+vim.api.nvim_create_autocmd("CursorHold", {
+    pattern = {
+        "*.v",
+        "*.sv",
+        "*.svh",
+    },
+
+    callback = function()
+        -- 只在普通模式触发
+        if vim.fn.mode() ~= "n" then
+            return
+        end
+
+        local clients = vim.lsp.get_clients({
+            bufnr = 0,
+            method = "textDocument/hover",
+        })
+
+        if #clients == 0 then
+            return
+        end
+
+        vim.lsp.buf.hover({
+            border = "rounded",
+            focusable = false,
+        })
+    end,
+})

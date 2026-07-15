@@ -131,16 +131,65 @@ return {
                 "always-comb",
             }
 
+            local verible_base_cmd = {
+                "verible-verilog-ls",
+                "--lsp_enable_hover",
+                "--rules=-" .. table.concat(ignored_verible_rules, ",-"),
+            }
+
+            local function find_verible_flist(root_dir)
+                local flists = vim.fn.globpath(root_dir, "*/rtl/*.flist", false, true)
+
+                table.sort(flists)
+
+                if #flists == 1 then
+                    return flists[1]
+                end
+
+                if #flists == 0 then
+                    vim.schedule(function()
+                        vim.notify("Verible: 未找到 */rtl/*.flist\nroot: " .. root_dir, vim.log.levels.WARN)
+                    end)
+
+                    return nil
+                end
+
+                vim.schedule(function()
+                    vim.notify(
+                        "Verible: 找到多个 *.flist，无法确定使用哪个：\n" .. table.concat(flists, "\n"),
+                        vim.log.levels.WARN
+                    )
+                end)
+
+                return nil
+            end
+
             opts.servers.verible = {
                 mason = false,
 
-                cmd = {
-                    "verible-verilog-ls",
-                    "--rules=-" .. table.concat(ignored_verible_rules, ",-"),
+                cmd = vim.deepcopy(verible_base_cmd),
+
+                filetypes = {
+                    "verilog",
+                    "systemverilog",
                 },
 
-                filetypes = { "verilog", "systemverilog" },
                 root_dir = verible_root_dir,
+
+                on_new_config = function(new_config, new_root_dir)
+                    -- 每个工程都重新生成启动命令，避免继承上一个工程的 flist
+                    new_config.cmd = vim.deepcopy(verible_base_cmd)
+
+                    local flist = find_verible_flist(new_root_dir)
+
+                    if flist then
+                        table.insert(new_config.cmd, "--file_list_path=" .. flist)
+
+                        vim.schedule(function()
+                            vim.notify("Verible 使用 filelist：\n" .. flist, vim.log.levels.INFO)
+                        end)
+                    end
+                end,
             }
         end,
     },
@@ -162,30 +211,29 @@ return {
             opts.formatters.verible_verilog_format = {
                 command = "verible-verilog-format",
                 args = {
-                    "--indentation_spaces=4",
-                    "--column_limit=160",
-
-                    -- 每层四个空格
+                    "--column_limit=300",
                     "--indentation_spaces=4",
                     "--wrap_spaces=4",
 
-                    -- 所有列表都按固定层级缩进
+                    -- 列表使用固定层级缩进
                     "--port_declarations_indentation=indent",
                     "--formal_parameters_indentation=indent",
                     "--named_port_indentation=indent",
                     "--named_parameter_indentation=indent",
 
-                    -- 不插入大量表格空格
-                    "--port_declarations_alignment=flush-left",
-                    "--formal_parameters_alignment=flush-left",
-                    "--named_port_alignment=flush-left",
-                    "--named_parameter_alignment=flush-left",
-                    "--module_net_variable_alignment=flush-left",
-                    "--assignment_statement_alignment=flush-left",
-                    "--case_items_alignment=flush-left",
+                    -- 按列进行表格化对齐
+                    "--assignment_statement_alignment=align",
+                    "--named_port_alignment=align",
+                    "--port_declarations_alignment=align",
+                    "--module_net_variable_alignment=align",
 
+                    "--port_declarations_right_align_packed_dimensions=true",
+                    "--port_declarations_right_align_unpacked_dimensions=true",
+
+                    "--wrap_end_else_clauses=false",
+
+                    -- 空行和分隔注释切断对齐组
                     "--alignment_group_boundary=blank-lines-and-separator-comments",
-
                     "-",
                 },
                 stdin = true,
