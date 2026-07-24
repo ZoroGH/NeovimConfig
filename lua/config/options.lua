@@ -54,3 +54,6 @@ vim.opt.foldenable = true
 -- 默认展开所有折叠
 vim.opt.foldlevel = 99
 vim.opt.foldlevelstart = 99
+
+vim.opt.termguicolors = true
+vim.opt.clipboard = ""
