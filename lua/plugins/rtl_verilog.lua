@@ -96,29 +96,31 @@ return {
 
             local function verible_root_dir(x, on_dir)
                 local fname = get_filename(x)
-                local util = require("lspconfig.util")
+                local start_dir = vim.fs.dirname(fname)
 
-                local root = util.root_pattern(
-                    ".git",
-                    ".svn",
-                    "Makefile",
-                    "makefile",
-                    "filelist.f",
-                    "flist.f",
-                    "verible.filelist",
-                    ".rules.verible_lint"
-                )(fname)
+                -- 优先寻找我们生成的唯一工程 filelist
+                local filelist = vim.fs.find("verible.filelist", {
+                    path = start_dir,
+                    upward = true,
+                    type = "file",
+                })[1]
 
-                if not root then
-                    root = vim.fs.dirname(fname) or vim.uv.cwd()
+                local root
+
+                if filelist then
+                    root = vim.fs.dirname(filelist)
+                else
+                    -- 没找到时，才退回 SVN / Git 根目录
+                    local util = require("lspconfig.util")
+
+                    root = util.root_pattern(".svn", ".git")(fname) or start_dir or vim.uv.cwd()
                 end
 
-                -- New nvim-lspconfig style may pass on_dir callback.
+                -- 兼容新版 nvim-lspconfig 的回调形式
                 if type(on_dir) == "function" then
                     on_dir(root)
                 end
 
-                -- Old style expects return value.
                 return root
             end
 
@@ -137,33 +139,6 @@ return {
                 "--rules=-" .. table.concat(ignored_verible_rules, ",-"),
             }
 
-            local function find_verible_flist(root_dir)
-                local flists = vim.fn.globpath(root_dir, "*/rtl/*.flist", false, true)
-
-                table.sort(flists)
-
-                if #flists == 1 then
-                    return flists[1]
-                end
-
-                if #flists == 0 then
-                    vim.schedule(function()
-                        vim.notify("Verible: 未找到 */rtl/*.flist\nroot: " .. root_dir, vim.log.levels.WARN)
-                    end)
-
-                    return nil
-                end
-
-                vim.schedule(function()
-                    vim.notify(
-                        "Verible: 找到多个 *.flist，无法确定使用哪个：\n" .. table.concat(flists, "\n"),
-                        vim.log.levels.WARN
-                    )
-                end)
-
-                return nil
-            end
-
             opts.servers.verible = {
                 mason = false,
 
@@ -177,16 +152,22 @@ return {
                 root_dir = verible_root_dir,
 
                 on_new_config = function(new_config, new_root_dir)
-                    -- 每个工程都重新生成启动命令，避免继承上一个工程的 flist
                     new_config.cmd = vim.deepcopy(verible_base_cmd)
 
-                    local flist = find_verible_flist(new_root_dir)
+                    local filelist = new_root_dir .. "/verible.filelist"
 
-                    if flist then
-                        table.insert(new_config.cmd, "--file_list_path=" .. flist)
+                    if vim.fn.filereadable(filelist) == 1 then
+                        table.insert(new_config.cmd, "--file_list_path=" .. filelist)
 
                         vim.schedule(function()
-                            vim.notify("Verible 使用 filelist：\n" .. flist, vim.log.levels.INFO)
+                            vim.notify("Verible filelist:\n" .. filelist, vim.log.levels.INFO)
+                        end)
+                    else
+                        vim.schedule(function()
+                            vim.notify(
+                                "Verible: 未找到 verible.filelist\nroot: " .. new_root_dir,
+                                vim.log.levels.WARN
+                            )
                         end)
                     end
                 end,
