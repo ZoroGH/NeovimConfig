@@ -2,9 +2,17 @@ return {
     "folke/todo-comments.nvim",
     dependencies = { "nvim-lua/plenary.nvim" },
     opts = {
-        -- your configuration comes here
-        -- or leave it empty to use the default settings
-        -- refer to the configuration section below
-        -- TODO: do this or that
+        highlight = {
+            keyword = "wide", -- 高亮NOTE: this is note
+            after = "bg", -- 高亮 NOTE 后面的说明文字
+            multiline = false,
+        },
+
+        keywords = {
+            SECTION = {
+                icon = "󰅂 ",
+                color = "#F2AF68",
+            },
+        },
     },
 }
