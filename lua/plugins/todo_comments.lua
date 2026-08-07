@@ -9,10 +9,10 @@ return {
         },
 
         keywords = {
-            SECTION = {
+            SEC = { --  this is a SEC: line
                 icon = "󰅂 ",
                 color = "#F2AF68",
             },
         },
-    },
+    }, -- SEC: line
 }

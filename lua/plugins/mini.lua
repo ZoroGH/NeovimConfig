@@ -9,7 +9,17 @@ return {
             -- 例如，启用并配置 mini.surround 和 mini.align
 
             -- 启用 mini.surround (添加、删除、修改包围符号)
-            require("mini.surround").setup()
+            require("mini.surround").setup({
+                mappings = {
+                    add = "gsa",
+                    delete = "gsd",
+                    find = "gsf",
+                    find_left = "gsF",
+                    highlight = "gsh",
+                    replace = "gsr",
+                    update_n_lines = "gsn",
+                },
+            })
 
             -- 启用 mini.align (对齐文本)
             require("mini.align").setup()

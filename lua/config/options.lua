@@ -57,3 +57,5 @@ vim.opt.foldlevelstart = 99
 
 vim.opt.termguicolors = true
 vim.opt.clipboard = ""
+
+vim.g.autoformat = false

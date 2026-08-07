@@ -59,3 +59,16 @@ end, {
     bang = true,
     desc = "Remove Verilog/SystemVerilog comments. Use ! to also remove empty lines",
 })
+
+vim.api.nvim_create_autocmd("LspAttach", {
+    callback = function(args)
+        local client = vim.lsp.get_client_by_id(args.data.client_id)
+
+        if client and client.name == "verible" then
+            -- 语义导航交给 LazyVerilog
+            client.server_capabilities.definitionProvider = false
+            client.server_capabilities.referencesProvider = false
+            client.server_capabilities.renameProvider = false
+        end
+    end,
+})
