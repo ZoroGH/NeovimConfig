@@ -72,3 +72,51 @@ vim.api.nvim_create_autocmd("LspAttach", {
         end
     end,
 })
+
+
+
+local inlay_group = vim.api.nvim_create_augroup("SvInlayHintsInsert", {
+    clear = true,
+})
+
+-- 进入 Insert：暂时关闭 inlay hints
+vim.api.nvim_create_autocmd("InsertEnter", {
+    group = inlay_group,
+    callback = function(args)
+        local ft = vim.bo[args.buf].filetype
+
+        if ft ~= "verilog" and ft ~= "systemverilog" then
+            return
+        end
+
+        local filter = { bufnr = args.buf }
+
+        -- 记录进入 Insert 前是否开启
+        vim.b[args.buf].inlay_was_enabled =
+            vim.lsp.inlay_hint.is_enabled(filter)
+
+        if vim.b[args.buf].inlay_was_enabled then
+            vim.lsp.inlay_hint.enable(false, filter)
+        end
+    end,
+})
+
+-- 离开 Insert：如果原本开启，则恢复
+vim.api.nvim_create_autocmd("InsertLeave", {
+    group = inlay_group,
+    callback = function(args)
+        local ft = vim.bo[args.buf].filetype
+
+        if ft ~= "verilog" and ft ~= "systemverilog" then
+            return
+        end
+
+        if vim.b[args.buf].inlay_was_enabled then
+            vim.lsp.inlay_hint.enable(true, {
+                bufnr = args.buf,
+            })
+        end
+
+        vim.b[args.buf].inlay_was_enabled = false
+    end,
+})
