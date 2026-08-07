@@ -24,6 +24,7 @@ return {
                         },
                     },
                     lsp = {
+                        fallbacks = {},
                         transform_items = function(_, items)
                             local ft = vim.bo.filetype
 
