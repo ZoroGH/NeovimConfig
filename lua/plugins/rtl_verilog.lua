@@ -73,107 +73,107 @@ return {
     -- LSP: Verible
     -- Requires verible-verilog-ls in PATH
     -- =========================================================
-    {
-        "neovim/nvim-lspconfig",
-        opts = function(_, opts)
-            opts.servers = opts.servers or {}
-
-            local function get_filename(x)
-                if type(x) == "number" then
-                    local name = vim.api.nvim_buf_get_name(x)
-                    if name ~= "" then
-                        return name
-                    end
-                    return vim.uv.cwd()
-                end
-
-                if type(x) == "string" and x ~= "" then
-                    return x
-                end
-
-                return vim.uv.cwd()
-            end
-
-            local function verible_root_dir(x, on_dir)
-                local fname = get_filename(x)
-                local start_dir = vim.fs.dirname(fname)
-
-                -- 优先寻找我们生成的唯一工程 filelist
-                local filelist = vim.fs.find("verible.filelist", {
-                    path = start_dir,
-                    upward = true,
-                    type = "file",
-                })[1]
-
-                local root
-
-                if filelist then
-                    root = vim.fs.dirname(filelist)
-                else
-                    -- 没找到时，才退回 SVN / Git 根目录
-                    local util = require("lspconfig.util")
-
-                    root = util.root_pattern(".svn", ".git")(fname) or start_dir or vim.uv.cwd()
-                end
-
-                -- 兼容新版 nvim-lspconfig 的回调形式
-                if type(on_dir) == "function" then
-                    on_dir(root)
-                end
-
-                return root
-            end
-
-            local ignored_verible_rules = {
-                "no-trailing-spaces",
-                "line-length",
-                "module-filename",
-                "explicit-parameter-storage-type",
-                "parameter-name-style",
-                "always-comb",
-            }
-
-            local verible_base_cmd = {
-                "verible-verilog-ls",
-                "--lsp_enable_hover",
-                "--rules=-" .. table.concat(ignored_verible_rules, ",-"),
-            }
-
-            opts.servers.verible = {
-                mason = false,
-
-                cmd = vim.deepcopy(verible_base_cmd),
-
-                filetypes = {
-                    "verilog",
-                    "systemverilog",
-                },
-
-                root_dir = verible_root_dir,
-
-                on_new_config = function(new_config, new_root_dir)
-                    new_config.cmd = vim.deepcopy(verible_base_cmd)
-
-                    local filelist = new_root_dir .. "/verible.filelist"
-
-                    if vim.fn.filereadable(filelist) == 1 then
-                        table.insert(new_config.cmd, "--file_list_path=" .. filelist)
-
-                        vim.schedule(function()
-                            vim.notify("Verible filelist:\n" .. filelist, vim.log.levels.INFO)
-                        end)
-                    else
-                        vim.schedule(function()
-                            vim.notify(
-                                "Verible: 未找到 verible.filelist\nroot: " .. new_root_dir,
-                                vim.log.levels.WARN
-                            )
-                        end)
-                    end
-                end,
-            }
-        end,
-    },
+    -- {
+    --     "neovim/nvim-lspconfig",
+    --     opts = function(_, opts)
+    --         opts.servers = opts.servers or {}
+    --
+    --         local function get_filename(x)
+    --             if type(x) == "number" then
+    --                 local name = vim.api.nvim_buf_get_name(x)
+    --                 if name ~= "" then
+    --                     return name
+    --                 end
+    --                 return vim.uv.cwd()
+    --             end
+    --
+    --             if type(x) == "string" and x ~= "" then
+    --                 return x
+    --             end
+    --
+    --             return vim.uv.cwd()
+    --         end
+    --
+    --         local function verible_root_dir(x, on_dir)
+    --             local fname = get_filename(x)
+    --             local start_dir = vim.fs.dirname(fname)
+    --
+    --             -- 优先寻找我们生成的唯一工程 filelist
+    --             local filelist = vim.fs.find("verible.filelist", {
+    --                 path = start_dir,
+    --                 upward = true,
+    --                 type = "file",
+    --             })[1]
+    --
+    --             local root
+    --
+    --             if filelist then
+    --                 root = vim.fs.dirname(filelist)
+    --             else
+    --                 -- 没找到时，才退回 SVN / Git 根目录
+    --                 local util = require("lspconfig.util")
+    --
+    --                 root = util.root_pattern(".svn", ".git")(fname) or start_dir or vim.uv.cwd()
+    --             end
+    --
+    --             -- 兼容新版 nvim-lspconfig 的回调形式
+    --             if type(on_dir) == "function" then
+    --                 on_dir(root)
+    --             end
+    --
+    --             return root
+    --         end
+    --
+    --         local ignored_verible_rules = {
+    --             "no-trailing-spaces",
+    --             "line-length",
+    --             "module-filename",
+    --             "explicit-parameter-storage-type",
+    --             "parameter-name-style",
+    --             "always-comb",
+    --         }
+    --
+    --         local verible_base_cmd = {
+    --             "verible-verilog-ls",
+    --             "--lsp_enable_hover",
+    --             "--rules=-" .. table.concat(ignored_verible_rules, ",-"),
+    --         }
+    --
+    --         opts.servers.verible = {
+    --             mason = false,
+    --
+    --             cmd = vim.deepcopy(verible_base_cmd),
+    --
+    --             filetypes = {
+    --                 "verilog",
+    --                 "systemverilog",
+    --             },
+    --
+    --             root_dir = verible_root_dir,
+    --
+    --             on_new_config = function(new_config, new_root_dir)
+    --                 new_config.cmd = vim.deepcopy(verible_base_cmd)
+    --
+    --                 local filelist = new_root_dir .. "/verible.filelist"
+    --
+    --                 if vim.fn.filereadable(filelist) == 1 then
+    --                     table.insert(new_config.cmd, "--file_list_path=" .. filelist)
+    --
+    --                     vim.schedule(function()
+    --                         vim.notify("Verible filelist:\n" .. filelist, vim.log.levels.INFO)
+    --                     end)
+    --                 else
+    --                     vim.schedule(function()
+    --                         vim.notify(
+    --                             "Verible: 未找到 verible.filelist\nroot: " .. new_root_dir,
+    --                             vim.log.levels.WARN
+    --                         )
+    --                     end)
+    --                 end
+    --             end,
+    --         }
+    --     end,
+    -- },
 
     -- =========================================================
     -- Formatter: Verible
